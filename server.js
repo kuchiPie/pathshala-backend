@@ -121,6 +121,66 @@ app.post('/user/verify', (req, res) => {
     })
 })
 
+function generateUID() {
+    var firstPart = (Math.random() * 46656) | 0;
+    var secondPart = (Math.random() * 46656) | 0;
+    firstPart = ("000" + firstPart.toString(36)).slice(-3);
+    secondPart = ("000" + secondPart.toString(36)).slice(-3);
+    return firstPart + secondPart;
+}
+
+app.post('/teacher/create_class', (req, res) => {
+
+    const teacher_id = req.body.teacher_id
+    const class_code = generateUID()
+    const grade = req.body.grade
+
+    const sqlQuery = "INSERT INTO all_classes (teacher_id, class_code, grade) VALUES (?,?,?)"
+
+    db.query(sqlQuery, [teacher_id, class_code, grade], (err, result) => {
+        console.log(err)
+        res.send(result)
+    })
+    // res.send(role, contact, otp)
+})
+
+app.post('/student/join_class', (req, res) => {
+
+    const student_id = req.body.student_id
+    const teacher_id = req.body.teacher_id
+    const class_code = req.body.class_code
+
+    const sqlQuery = "INSERT INTO students_class (student_id, class_code, teacher_id) VALUES (?,?,?)"
+
+    const sqlQuery2 = "SELECT no_of_students from all_classes WHERE class_code = ?"
+
+    const sqlQuery3 = "UPDATE all_classes SET no_of_students = ? WHERE class_code = ?"
+
+    const sqlQuery4 = " SELECT student_id, class_code FROM study_room.students_class where student_id = ? and class_code= ?"
+
+    db.query(sqlQuery4, [student_id, class_code], (err, result1) => {
+
+        if (result1.length >= 1) {
+            res.status(404).send('already in this class')
+        } else {
+            db.query(sqlQuery2, [class_code], (err, result2) => {
+
+                const student_count = result2[0].no_of_students + 1
+
+                db.query(sqlQuery3, [student_count, class_code], (err, result3) => {
+                    console.log(err)
+                })
+
+                db.query(sqlQuery, [student_id, class_code, teacher_id], (err, result4) => {
+                    console.log(err)
+                    res.send(result4)
+                })
+            })
+        }
+    })
+    // res.send(role, contact, otp)
+})
+
 app.listen(8080, () => {
     console.log('server is up on port 8080')
 })
