@@ -56,6 +56,49 @@ app.post('/teachers/give_assignment', (req, res) => {
 
 })
 
+// Create account api
+app.post('/user/signup', (req, res) => {
+
+    const username = req.body.username
+    const email = req.body.email
+    const password = req.body.password
+    const student = req.body.student // if teacher then student == false
+    
+    const sqlQuery = "INSERT INTO user (username, email, password, student) VALUES (?,?,?,?)"
+
+    db.query(sqlQuery, [username, email, password, student], (err, result) => {
+        console.log(err)
+        res.send(result)
+    })
+
+    // res.send(details)
+
+})
+
+// login api
+app.post('/user/login', (req, res) => {
+
+    const email = req.body.email
+    const password = req.body.password
+    
+    const sqlQuery = "SELECT password FROM user WHERE email=?;"
+
+
+    db.query(sqlQuery, [email], (err, result) => {
+        if(result[0].password === password){
+            console.log("Logged in")
+            res.send(result)
+        }
+        else{
+            console.log("Please enter password again")
+            res.send(err)
+        }
+    })
+
+    // res.send(details)
+
+})
+
 app.get('/teacher/get_assignment_by_id', (req, res) => {
     const teacher_id = req.body.teacher_id
 
@@ -142,6 +185,23 @@ app.post('/teacher/create_class', (req, res) => {
         res.send(result)
     })
     // res.send(role, contact, otp)
+})
+
+app.post('/student/student_details', (req, res) => {
+    const name = req.body.name
+    const email = req.body.email
+    
+    const contact = req.body.contact
+    const school = req.body.school
+    const grade = req.body.grade
+
+    const sqlQuery = "INSERT INTO student_details (name, email, contact, school, grade) VALUES (?,?,?,?,?)"
+
+    db.query(sqlQuery, [name, email, contact, school, grade], (err, result) => {
+        console.log(err)
+        res.send(result)
+    })
+    
 })
 
 app.post('/student/join_class', (req, res) => {
