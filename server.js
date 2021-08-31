@@ -2,6 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const mysql = require('mysql')
+const bcrypt = require('bcrypt');
 
 const app = express()
 app.use(cors())
@@ -61,9 +62,11 @@ app.post('/user/signup', (req, res) => {
 
     const username = req.body.username
     const email = req.body.email
-    const password = req.body.password
+    let password = req.body.password
     const student = req.body.student // if teacher then student == false
-    
+    const saltRounds = 10;
+    password = bcrypt.hashSync(password, saltRounds);
+
     const sqlQuery = "INSERT INTO user (username, email, password, student) VALUES (?,?,?,?)"
 
     db.query(sqlQuery, [username, email, password, student], (err, result) => {
@@ -85,7 +88,8 @@ app.post('/user/login', (req, res) => {
 
 
     db.query(sqlQuery, [email], (err, result) => {
-        if(result[0].password === password){
+        let connection = bcrypt.compareSync(password, result[0].password);
+        if(connection){
             console.log("Logged in")
             res.send(result)
         }
